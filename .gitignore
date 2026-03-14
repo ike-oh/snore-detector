@@ -31,6 +31,10 @@ models/
 
 # Jupyter
 .ipynb_checkpoints/
+*.ipynb
+
+# Outputs
+outputs/
 
 # Env
 .env
