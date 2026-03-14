@@ -2,30 +2,39 @@ import torch
 import torch.nn as nn
 
 
+CONFIGS = {
+    "8→16→32": [8, 16, 32],
+    "8→16":    [8, 16],
+    "4→8":     [4, 8],
+    "12→12":   [12, 12],
+    "16→8":    [16, 8],
+    "8→8":     [8, 8],
+}
+
+
 class SnoreCNN(nn.Module):
-    def __init__(self):
+    def __init__(self, channels=None):
         super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 8, kernel_size=3, padding=1),
-            nn.BatchNorm2d(8),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
+        if channels is None:
+            channels = CONFIGS["8→16→32"]
 
-            nn.Conv2d(8, 16, kernel_size=3, padding=1),
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
+        layers = []
+        in_ch = 1
+        for out_ch in channels:
+            layers.extend([
+                nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(),
+                nn.MaxPool2d(2),
+            ])
+            in_ch = out_ch
 
-            nn.Conv2d(16, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
+        self.features = nn.Sequential(*layers)
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
             nn.Dropout(0.5),
-            nn.Linear(32, 1),
+            nn.Linear(channels[-1], 1),
         )
 
     def forward(self, x):
@@ -35,11 +44,9 @@ class SnoreCNN(nn.Module):
 
 
 if __name__ == "__main__":
-    model = SnoreCNN()
-    total = sum(p.numel() for p in model.parameters())
-    print(f"Total parameters: {total:,}")
-
     x = torch.randn(1, 1, 64, 188)
-    out = model(x)
-    print(f"Input:  {x.shape}")
-    print(f"Output: {out.shape}")
+    for name, channels in CONFIGS.items():
+        model = SnoreCNN(channels)
+        total = sum(p.numel() for p in model.parameters())
+        out = model(x)
+        print(f"{name:10s} | params: {total:>6,} | output: {out.shape}")
