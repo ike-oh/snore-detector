@@ -16,7 +16,7 @@ class SnoreCNN(nn.Module):
     def __init__(self, channels=None):
         super().__init__()
         if channels is None:
-            channels = CONFIGS["8→16→32"]
+            channels = CONFIGS["12→12"]
 
         layers = []
         in_ch = 1
