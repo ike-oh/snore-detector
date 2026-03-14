@@ -36,5 +36,8 @@ models/
 # Outputs
 outputs/
 
+# Docs
+DECISIONS.md
+
 # Env
 .env
